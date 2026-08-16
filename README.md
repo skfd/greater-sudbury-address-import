@@ -35,6 +35,18 @@ parent address, no unit numbers) that collapse-to-civic handles exactly;
 community polygons, 99.97% point coverage). The 3,600 km² extent is the
 portfolio's largest.
 
+Entry state probed 2026-08-16 (`onboarding/entry-state-2026-08-16.json`):
+**greenfield with a hand-mapped core** — `TristanA` mapped downtown Sudbury
+addresses onto buildings in 2013–14 (1,176 of 1,851 sampled elements,
+including postal codes), the largest manual address effort found in any
+probed city; the outlying communities are thin CanVec plus Matthew Darwin's
+2018 rename retag. No import tags, no wiki page, essentially quiet since.
+The 53.8% gap lives in the outlying communities, not the core. TristanA is
+owed the Kevo-style courtesy conversation before any changeset. Convention
+warning: `addr:city` splits three ways ('Greater Sudbury' 612 / 'Sudbury'
+565 / 'Chelmsford' 99) — the amalgamated-city naming question is general
+after all (engine TODO §2 updated).
+
 Before any production upload: wiki proposal page, forum announcement, and
 feedback window per the
 [OSM Import Guidelines](https://wiki.openstreetmap.org/wiki/Import/Guidelines)
