@@ -1,0 +1,103 @@
+[city]
+slug = "greater-sudbury"
+name = "Greater Sudbury"
+# "2016 Census Community Boundaries": 23 named community polygons (Azilda,
+# Capreol, Chelmsford, Coniston, Copper Cliff, ...) aligned with the source's
+# own COMMUNITY field, point-tested 2026-08-16 at 99.97% of snapshot-63
+# addresses. Ward_Boundaries scored 100.00% but names its 12 polygons by
+# bare number — communities win on legibility. Field name is the awkward
+# joined 'Neighbourhoods__Community'; the declared contract handles it.
+neighbourhoods_url = "https://services.arcgis.com/q3mIlR87lZlZsds3/arcgis/rest/services/2016_Census_Community_Boundaries/FeatureServer/0/query?where=1%3D1&outFields=Neighbourhoods__Community&outSR=4326&f=geojson"
+neighbourhood_name_field = "Neighbourhoods__Community"
+
+[source]
+sqlite_path = "C:/Users/kk/Code/ontario-address-changes/data/greater-sudbury/greater-sudbury.db"
+
+# Per-city projection recipe (multi-city Tier 2), measured against snapshot 63
+# (2026-08-16 — same-day fresh; ADDRESSID is a stable key).
+[source_fields]
+# FULLSTREETNAME: 97.2% typed, mixed-case LONG form ("Prevost Street North")
+# — the first properly-cased source since Guelph. No suffix expansion, no
+# title-casing needed (TODO §9 does NOT apply here).
+street_from = "street"
+# FULLADDRESSTEXT is faithful (keeps the 372 ADDRESSNUMBERSUFFIX rows'
+# suffixes the integer number column drops); deviations from number+street
+# are 1,481 rows = the suffix rows + the 798 number-less named places.
+full_from = "full"
+# number stays the canonical column DELIBERATELY: number_from = "full" would
+# fabricate a "number" out of the first street token for the 798 number-less
+# rows (islands, lakes — "Matagamasi Lake Island"), poisoning TODO §8's
+# future handling. Losing 372 suffixes < inventing 798 numbers.
+# COMMUNITY: 25 values (2001 amalgamation — Sudbury 35,329 down to Skead),
+# load-bearing for dedup keying and review display.
+municipality = "props:COMMUNITY"
+# UNIT_OR_AMENITY is a ROW-KIND FLAG, not a unit number: 'Unit' rows (5,208)
+# are secondary dwelling points (Townhouse/Apartments/Mobile Home per
+# UNIT_AMENITY_TYPE) and 'Amenity' rows (4,483) are POI points (Shell Gas
+# Station, schools) stacked at the parent civic address — NO unit identifier
+# is published. Declaring it + collapse is semantically exact: the flagged
+# rows fold into their civic parent, the flag-less row is elected.
+unit = "unit"
+# First city where the status filter is LOAD-BEARING, not protective: the
+# live layer carries 896 'Retired' rows and 5 'Pending' alongside 69,165
+# 'Active' (measured 2026-08-16). Without the filter, retired addresses
+# would enter conflation as MISSING candidates.
+status = "props:ADDRESSLIFECYCLESTATUS"
+# 798 rows (1.1%) have no housenumber — named islands/lakes/lanes (TODO §8).
+# No ward field, no ranges, no Toronto-style address class.
+
+[units]
+policy = "collapse-to-civic"
+
+[status]
+active_values = ["Active"]
+
+[run_defaults]
+# Dense downtown cell (1,292 rows) for first test runs.
+bbox = [46.476, -81.012, 46.488, -81.000]
+overpass_url = "https://overpass-api.de/api/interpreter"
+
+[osm]
+source = "local"
+# Same Ontario PBF as every city in the portfolio.
+pbf_url = "https://download.geofabrik.de/north-america/canada/ontario-latest.osm.pbf"
+# Source-data extent (70,066 rows measured 2026-08-16: lat 46.20034..46.88171,
+# lon -81.59833..-80.55685) plus a small margin — 3,600 km², the largest
+# municipal extent in the portfolio; see 10-boundary-clipping.md.
+city_bbox = [46.18, -81.62, 46.90, -80.53]
+extract_dir = "data/osm"
+
+[conflation]
+match_radius_m = 100
+match_near_m = 15
+
+[checks]
+match_far = true
+# suffix_range deliberately absent: ADDRESSNUMBERPREFIX/SUFFIX are near-empty
+# schema slots, not a range pair.
+city_duplicate = true
+missing_sample = true
+nearby_street_mismatch = true
+
+[check_params.city_duplicate]
+radius_m = 3.0
+
+[check_params.missing_sample]
+every_nth = 50
+
+[check_params.nearby_street_mismatch]
+radius_m = 20.0
+
+[check_params.match_number_drift]
+slack_m = 2.0
+
+[upload]
+changesets_per_minute = 1
+changeset_comment_template = "{city} Open Data address import, run={run_name}"
+
+[export]
+attribution = "City of Greater Sudbury Open Data"
+# Entry-state probe of 2026-08-16 pending at write time (see README). No
+# proposal exists; write and publish one per the OSM Import Guidelines
+# BEFORE any production upload.
+import_plan = ""
